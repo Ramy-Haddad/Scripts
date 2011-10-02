@@ -576,11 +576,11 @@ public class PowerFletcherPro extends Script implements PaintListener, MessageLi
 		millis -= minutes * (1000 * 60);
 		seconds = millis / 1000;
 
-        g.setFont(font3);
-        g.setColor(color3);
-        g.drawString("RunTime: ", 9, 77);
-        g.setColor(color4);
-        g.drawString("Status: ", 9, 47);
+        //g.setFont(font3);
+        //g.setColor(color3);
+        //g.drawString("RunTime: ", 9, 77);
+        //g.setColor(color4);
+        //g.drawString("Status: ", 9, 47);
         
         if(cc != 0){
         	int cx = (int)(cc / 2.22);
