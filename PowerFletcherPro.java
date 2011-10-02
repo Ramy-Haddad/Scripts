@@ -28,7 +28,7 @@ import org.rsbot.script.wrappers.RSObject;
 
 
 @ScriptManifest(authors = {"Ramy"},
-version = 0.511,
+version = 1.0,
 description = "Chop tree Flect and alch it.",
 keywords = {"Pro", "Power","Fletcher","Woodcutting","Magic","Tree","Bow"},
 name = "PowerFletcherPro")
