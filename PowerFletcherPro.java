@@ -28,7 +28,7 @@ import org.rsbot.script.wrappers.RSObject;
 
 
 @ScriptManifest(authors = {"Ramy"},
-version = 1.0,
+version = 0.511,
 description = "Chop tree Flect and alch it.",
 keywords = {"Pro", "Power","Fletcher","Woodcutting","Magic","Tree","Bow"},
 name = "PowerFletcherPro")
@@ -94,10 +94,6 @@ public class PowerFletcherPro extends Script implements PaintListener, MessageLi
 		public int[] getHatchetsID(){
 			return new int[] { 1349, 1351, 1353, 1355, 1357, 1359, 1361, 6739,
 		            13470 };
-		}
-		public int[] getUnDrop(){
-			return new int[] { 1349, 1351, 1353, 1355, 1357, 1359, 1361, 6739,
-		            13470, 946, 14111,995,1387,554,561};
 		}
 	}
 	
@@ -324,7 +320,7 @@ public class PowerFletcherPro extends Script implements PaintListener, MessageLi
 			}
 			break;
 		case Drop:
-			inventory.dropAllExcept(bow.getUnDrop());
+			inventory.dropAll(bow.getBowID());
 			sleep(400,500);
 			AntiBan(AntiBan.moveRandomly,200,900);
 			break;
@@ -576,11 +572,11 @@ public class PowerFletcherPro extends Script implements PaintListener, MessageLi
 		millis -= minutes * (1000 * 60);
 		seconds = millis / 1000;
 
-        //g.setFont(font3);
-        //g.setColor(color3);
-        //g.drawString("RunTime: ", 9, 77);
-        //g.setColor(color4);
-        //g.drawString("Status: ", 9, 47);
+        g.setFont(font3);
+        g.setColor(color3);
+        g.drawString("RunTime: ", 9, 77);
+        g.setColor(color4);
+        g.drawString("Status: ", 9, 47);
         
         if(cc != 0){
         	int cx = (int)(cc / 2.22);
