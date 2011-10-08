@@ -293,7 +293,11 @@ public class PowerFletcherPro extends Script implements PaintListener, MessageLi
 			}
 			break;
 		case Flect:
-			if(getMyPlayer().getAnimation() != 1248 ){
+			if(!magic.isSpellSelected()){
+				game.openTab(Game.Tab.CLAN_CHAT);
+				sleep(500);
+			}
+			if(getMyPlayer().getAnimation() != 1248 && !magic.isSpellSelected()){
 			if(ClayKnife){
 				KnifeID = ClayKnifeID;
 		    }
@@ -490,8 +494,8 @@ public class PowerFletcherPro extends Script implements PaintListener, MessageLi
 	}
     private final Color color1 = new Color(255, 0, 0);
     private final Color color2 = new Color(0, 153, 0);
-    private final Color color3 = new Color(255, 0, 51);
-    private final Color color4 = new Color(204, 0, 51);
+    //private final Color color3 = new Color(255, 0, 51);
+    //private final Color color4 = new Color(204, 0, 51);
     private final Color color5 = new Color(0, 153, 0);
     private final Color color6 = new Color(0, 0, 0);
     private final Color color7 = new Color(153, 153, 153, 173);
@@ -502,7 +506,7 @@ public class PowerFletcherPro extends Script implements PaintListener, MessageLi
 
     private final Font font1 = new Font("Arial", 1, 21);
     private final Font font2 = new Font("Arial", 1, 13);
-    private final Font font3 = new Font("Arial", 1, 16);
+    //private final Font font3 = new Font("Arial", 1, 16);
     private final Font font4 = new Font("Arial", 1, 15);
     
     private final Image ChatBoxImage = getImage("http://img104.imageshack.us/img104/5737/blankboxgk9.png");
