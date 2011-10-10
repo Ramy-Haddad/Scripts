@@ -1,6 +1,13 @@
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.net.URL;
 
@@ -23,36 +30,46 @@ import org.rsbot.script.wrappers.RSTile;
 /**
  * @author Ramy
  * @category MiniGame
- * @version Beta 0.90
+ * @version Beta 0.92
  */
-@ScriptManifest(authors = { "Ramy" }, keywords = { "Miningames", "Grea Orb Project", "Ramy" }, name = "GOPPro", version = 0.90, description = "Playing the Great Orb Project game and craft runes!")
+
+@ScriptManifest(authors = { "Ramy" }, keywords = { "Miningames", "Grea Orb Project", "Ramy" }, name = "GOPPro", version = 0.92, description = "Playing the Great Orb Project game and craft runes!")
 public class GOPPro extends Script implements PaintListener, MessageListener,
 		MouseListener {
 	
 	
-	Team team;
+	Team team = Team.Green;
 	JoinTeam Jointeam;
 	static Style style;
+	
 	public enum Team{
-		Yellow(0, 8021,38377, 13648, 8030 ),
-		Green(1, 8025,38378, 13647, 8031 );
+		Yellow(0, 8021,38377, 13648,13644,13646, 8030 ),
+		Green(1, 8025,38378, 13647,13643,13645, 8031 );
 		
 		int ID = 0;
-		static int num = 1;
 		
 		int OrbID = 0;
 		int BarriedID = 0;
 		int WizardID = 0;
 		int BarriesID = 0;
+		int RepellerID = 0;
+		int AttrackerID = 0;
 		
-		Team(int ID, int OrbID,int BarriesID, int BarriedID, int WizardID){
+		Team(int ID, int OrbID, int BarriesID, int BarriedID,int RepellerID,int AttrackerID, int WizardID){
+			this.RepellerID = RepellerID;
+			this.AttrackerID = AttrackerID;
 			this.BarriesID = BarriesID;
 			this.WizardID = WizardID;
 			this.BarriedID = BarriedID;
 			this.OrbID = OrbID;
 		}
 		
-		
+		public int getRepellerID(){
+			return BarriesID;
+		}
+		public int getAttrackerID(){
+			return BarriesID;
+		}
 		public int getBarriesID(){
 			return BarriesID;
 		}
@@ -67,9 +84,6 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		}
 		public int getID(){
 			return ID;
-		}
-		public static int getTeam(){
-			return num;
 		}
 	}
 	
@@ -101,7 +115,8 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 	public boolean START = false;
 	
 	public boolean GUILoaded = false;
-
+	public boolean hide = false;
+	
 	public int START_TOKENS = 0;
 	public int START_XP = 0;
 	public int START_LEVEL = 0;
@@ -119,21 +134,21 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 
 	public final int ANIMATION = 10132;
 	public final int[] ESS = {1436, 7936};
-	public final static int MIND_ALTER_ID = 2479;
+	public final int MIND_ALTER_ID = 2479;
 	public final int TOKENS = 13650;
 
 	public final int[] ALTERS_ID = { 2478, 2479, 2480, 2481, 2482, 2483, 2487,
 			2486 };
-	public final int[] REPELLER_ID = { 13644, 13646 };
-	public final int[] ATTRACTER_ID = { 13643, 13645 };
-	public final int[] GUILD_AREA = { 1688, 5460, 1704, 5476 };
 
+	public final int[] GUILD_AREA = { 1688, 5460, 1704, 5476 };
+	
 	public final static RSArea[] MIND_UNREACH_ABLE_ORBS = {
 			new RSArea(new RSTile(9191,5682,0), new RSTile(9190,5684,0)),
 			new RSArea(new RSTile(9197,5678,0), new RSTile(9195,5680,0)),
 			new RSArea(new RSTile(9198,5674,0), new RSTile(9199,5675,0)),
 			new RSArea(new RSTile(9200,5671,0), new RSTile(9201,5670,0))
 			};
+	
 	public int loop() {
 		try {
 			switch (getState()) {
@@ -215,6 +230,7 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		return true;
 	}
 	public void Exit() {
+		Status = "Entering Portal...";
 		RSNPC exitPortal = npcs.getNearest(new int[] { 8020 });
 		RSObject alter = objects.getNearest(new int[] { 2478, 2479, 2480, 2481,
 				2482, 2483, 2486, 2487 });
@@ -313,7 +329,7 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 			if (inventory.getCount(Team.Green.getBarriedID()) > 0) {
 				team = Team.Green;
 			}
-			RSItem r = inventory.getItem(REPELLER_ID[Team.num]);
+			RSItem r = inventory.getItem(team.getRepellerID());
 			if (r != null && style == Style.Repel) {
 				r.interact("Wield");
 				sleep(2000);
@@ -346,97 +362,123 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 						interfaces.getComponent(228, 2).doClick();
 						sleep(500, 1000);
 					}else{
-						faceObject(alter);
-						sleep(200,400);
-						alter.interact("Craft-rune");
-						sleep(850, 1250);
+						Status = "Crafting Runes...";
+						TrunCameraTo(alter);
+						if(alter.interact("Craft-rune")){
+							sleep(850, 1250);
+						}
 					}
 				}else{
-					walking.walkTileMM(alter.getLocation());
-					while(getMyPlayer().isMoving()){
-						sleep(200,500);
+					Walk2Alter();
 					}
 				}
 			}
 		}
-	}
 
 	public void Defend() {
+		Status = "Repelling orb...";
 		RSNPC orb = npcs.getNearest(getOrbFilter());
 		if (style == Style.Repel) {
-			if (orb != null){
-				RSItem r = inventory.getItem(REPELLER_ID[Team.num]);
+			if (orb != null) {
+				RSItem r = inventory.getItem(team.getRepellerID());
 				if (r != null) {
-					r.interact("Wield");
+					if (r.interact("Wield")) {
+						sleep(200, 500);
+					}
 				}
 				if (orb.isOnScreen()) {
-						orb.interact("Repel");
+					if (orb.interact("Repel")) {
 						sleep(1000, 1500);
-				}else{
+					}
+				} else {
 					TrunCameraTo(orb);
 				}
-			}else{
+			} else {
 				moveCameraRandomly();
 			}
 		}
 	}
 
 	public void Offend() {
-		camera.setPitch(random(10,20));
 		RSObject alter = objects.getNearest(ALTERS_ID);
 		RSNPC orb = npcs.getNearest(getOrbFilter());
-		
-		if(orb != null){
-				if(getMyPlayer().getAnimation() == ANIMATION && alter.isOnScreen()){
-					moveMouseOffScreen(random(200, 1200));
-				}else if (calc.distanceTo(alter.getLocation()) > 3) {
-					Walk2Alter();
-					return;
-					}
-						if (!orb.isOnScreen()) {
-							TrunCameraTo(orb);
-						} else {
-							RSItem a = inventory.getItem(ATTRACTER_ID[Team.num]);
-							if (a != null) {
-								a.interact("Wield");
-								sleep(200,500);
-							} else {
-								Status = "Attracting orb..";
-								orb.interact("attract");
-								sleep(850, 1500);
-							}
+		if (orb != null) {
+			if (getMyPlayer().getAnimation() == ANIMATION && alter.isOnScreen()) {
+				moveMouseOffScreen(random(200, 1200));
+			} else if (calc.distanceTo(alter.getLocation()) > 3) {
+				Walk2Alter();
+			} else {
+				if (!orb.isOnScreen()) {
+					TrunCameraTo(orb);
+				} else {
+					RSItem a = inventory.getItem(team.getAttrackerID());
+					if (a != null) {
+						a.interact("Wield");
+						sleep(200, 500);
+					} else {
+						Status = "Attracking orb...";
+						if(orb.interact("attract")){
+						sleep(850, 1500);
 						}
-		}else{
+					}
+				}
+			}
+		} else {
 			moveCameraRandomly();
 		}
-		}
+	}
 
 	public void DestroyBarrier() {
 		Status = "Destroying Barriers..";
 		RSObject BARRIER = objects.getNearest(team.getBarriesID());
 		if (calc.distanceTo(BARRIER.getLocation()) <= 15 && BARRIER != null) {
-			faceObject(BARRIER);
+			TrunCameraTo(BARRIER);
 			sleep(500, 750);
-			BARRIER.interact("Destroy");
+			if(BARRIER.interact("Destroy")){
 			sleep(1000, 1720);
+			}
 		}
 	}
+	
+	/**
+	 * @param orb the npc to turn to
+	 */
 	public void TrunCameraTo(RSNPC orb){
-		if(calc.distanceTo(orb) > 5){
+		TrunCameraTo(orb.getLocation());
+	}
+	
+	/**
+	 * @param orb the object to turn to
+	 */
+	public void TrunCameraTo(RSObject orb){
+		TrunCameraTo(orb.getLocation());
+	}
+	
+	/**
+	 * @param orb the tile to turn to
+	 */
+	public void TrunCameraTo(RSTile t){
+		if(calc.distanceTo(t) > 5){
 			camera.setPitch(random(20,40));
-		}else if(calc.distanceTo(orb) > 10){
+		}else if(calc.distanceTo(t) > 10){
 			camera.setPitch(random(15,35));
-		}else if(calc.distanceTo(orb) > 15){
+		}else if(calc.distanceTo(t) > 15){
 			camera.setPitch(random(10,25));
-		}else if(calc.distanceTo(orb) > 20){
+		}else if(calc.distanceTo(t) > 20){
 			camera.setPitch(random(5,15));
-		}else if(calc.distanceTo(orb) > 25){
+		}else if(calc.distanceTo(t) > 25){
 			camera.setPitch(random(0,5));
 		}
-		camera.turnTo(orb);
+		camera.turnTo(t);
 		sleep(200,500);
 	}
-	public void mouseClicked(MouseEvent e) {
+	
+	Rectangle r = new Rectangle(522, 468, 29, 33);
+	public void mouseClicked(MouseEvent mouse) {
+		Point p = mouse.getPoint();
+		if(r.contains(p)){
+			hide = !hide;
+		}
 	}
 
 	public void mouseEntered(MouseEvent e) {
@@ -491,6 +533,10 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		}
 	}
 
+	/**
+	 * @param i barrier maker item
+	 * @param t times to make barries.
+	 */
 	public void CreatBarrier(RSItem i, int t){
 		RSObject a = objects.getNearest(ALTERS_ID);
 			while(calc.distanceTo(a) < 15){
@@ -501,18 +547,18 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 				}
 			}
 			for(int k = 0; k < t; k++){
-				i.interact("Make-barrier");
+				if(i.interact("Make-barrier")){
 				sleep(1000,1500);
 				DestroyBarrier();
+				}
 			}
 	}
-	public void faceObject(RSObject o) {
-		int angle = camera.getObjectAngle(o);
-		camera.setAngle(angle + random(-10, 10));
-	}
 
-	Rectangle closeButton = new Rectangle(498, 357, 25, 25);
-
+	
+	/**
+	 * @param url the link to image
+	 * @return Image
+	 */
 	private Image getImage(String url) {
 		try {
 			return ImageIO.read(new URL(url));
@@ -532,10 +578,13 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 
 	public void onRepaint(Graphics g1) {
 		Graphics2D g = (Graphics2D) g1;
+		if(!hide){
+	        g.setColor(new Color(255, 0, 51, 187));
+	        g.fillRect(522, 468, 29, 33);
+
 		GAINED_TOKENS = CURRENT_TOKENS - START_TOKENS;
 		GAINED_XP = skills.getCurrentExp(Skills.RUNECRAFTING) - START_XP;
-		GAINED_LEVEL = skills.getCurrentLevel(Skills.RUNECRAFTING)
-				- START_LEVEL;
+		GAINED_LEVEL = skills.getCurrentLevel(Skills.RUNECRAFTING) - START_LEVEL;
 		CURRENT_LEVEL = skills.getCurrentLevel(Skills.RUNECRAFTING);
 
 		millis = System.currentTimeMillis() - startTime;
@@ -548,12 +597,10 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		g.drawImage(img1, -29, 206, null);
 		g.setFont(font1);
 		g.setColor(color1);
-		g.drawString("Tokens: " + CURRENT_TOKENS + "(" + GAINED_TOKENS + ")",
-				16, 385);
+		g.drawString("Tokens: " + CURRENT_TOKENS + "(" + GAINED_TOKENS + ")", 16, 385);
 		g.drawString("XP: " + GAINED_XP, 14, 407);
 		g.setFont(font2);
-		g.drawString("Level: " + CURRENT_LEVEL + "(" + GAINED_LEVEL + ")", 14,
-				430);
+		g.drawString("Level: " + CURRENT_LEVEL + "(" + GAINED_LEVEL + ")", 14, 430);
 		g.setColor(color2);
 		g.drawString("Runtime: " + hours + ":" + minutes + ":" + seconds, 9, 35);
 		g.setColor(color1);
@@ -562,12 +609,16 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		g.drawString("GOP", 159, 337);
 		g.setColor(color2);
 		g.drawString("Pro", 205, 338);
+		}else{
+	        g.setColor(new Color(102, 255, 0, 187));
+	        g.fillRect(522, 468, 29, 33);
+		}
 	}
 
 	public void onFinish() {
 		log(Color.blue, "Thank you for using GOPPro!");
 	}
-
+	
 	public boolean onStart() {
 		log(Color.ORANGE,"Welcome!");
 		startTime = System.currentTimeMillis();
@@ -586,52 +637,57 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		return true;
 	}
 
+	/**
+	 * @return the status.
+	 */
 	public State getState() {
 		RSNPC exitPortal = npcs.getNearest(8020);
 		RSObject alter = objects.getNearest(ALTERS_ID);
+		final RSObject BARRIER = objects.getNearest(team.getBarriesID());
+		
 		if (playerInArea(GUILD_AREA)) {
-			if(!Status.toLowerCase().contains("waiting")){
-				Status = "Joining Game...";
-			}
+			log("x");
 			return State.join;
 		} else if (alter != null) {
-			if (!alter.isOnScreen() || calc.distanceTo(alter.getLocation()) > 100) {
-					Status = "Moving to " + alter.getName() + " ...";
-					return State.Walk2Alter;
-			}else if (exitPortal != null) {
-				if (inventory.getCount(ESS) >= 5) {
-					Status = "Crafting Runes...";
-					return State.craftRunes;
+			if (alter.isOnScreen()){
+				if (exitPortal != null) {
+					if (inventory.getCount(ESS) >= 5) {
+						return State.craftRunes;
+					}
+
+					return State.exit;
+					
+				}else{
+					if(BARRIER != null && calc.distanceTo(BARRIER) <= 10){
+						return State.Destroy;
+					}else{
+						if (style == Style.Attrack) {
+							return State.offend;
+						} else {
+							return State.defend;
+						}
+					}
 				}
-				Status = "Entering Portal...";
-				return State.exit;
-				
-			}
-			final RSObject BARRIER = objects.getNearest(team.getBarriesID());
-			if(BARRIER != null && calc.distanceTo(BARRIER) <= 10){
-				return State.Destroy;
 			}else{
-				if (style == Style.Attrack) {
-					Status = "Attracking orb...";
-					return State.offend;
-				} else {
-					Status = "Repelling orb...";
-					return State.defend;
+				if(calc.distanceTo(alter.getLocation()) > 50){
+					return State.Walk2Alter;
+				}else{
+					TrunCameraTo(alter);
 				}
-			}
-		} else {
-			return null;
+			}	
 		}
+		log("xx");
+		return null;
+	}
+	public class Mouse{
+		private final Color MOUSE_COLOR = new Color(132, 198, 99),
+	            MOUSE_BORDER_COLOR = new Color(225, 200, 25),
+	            MOUSE_CENTER_COLOR = new Color(168, 9, 9);
+	    private boolean pressed = false;
+	    private int absoluteY = 0;
+	    
 	}
 	
-	public boolean playerInArea(int[] area) {
-		int x = getMyPlayer().getLocation().getX();
-		int y = getMyPlayer().getLocation().getY();
-		if (x >= area[0] && y >= area[1] && x <= area[2] && y <= area[3])
-			return true;
-		return false;
-	}
-
 	/** -----------------------GUI----------------------- */
 	@SuppressWarnings("serial")
 	public class GOPGui extends javax.swing.JFrame {
@@ -971,7 +1027,6 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 			}
 		}
 
-		// Variables declaration - do not modify
 		private javax.swing.JRadioButton defend;
 		private javax.swing.JRadioButton green;
 		private javax.swing.JRadioButton offend;
@@ -989,6 +1044,19 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		// End of variables declaration
 	}
 
+	/**
+	 * 
+	 * @param area
+	 * @return true if player in area
+	 */
+	public boolean playerInArea(int[] area) {
+		int x = getMyPlayer().getLocation().getX();
+		int y = getMyPlayer().getLocation().getY();
+		if (x >= area[0] && y >= area[1] && x <= area[2] && y <= area[3])
+			return true;
+		return false;
+	}
+	
 	private void AntiBan() {
 		switch (random(0, 3)) {
 		case 0:
@@ -999,7 +1067,9 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 			moveCameraRandomly();
 		}
 	}
-
+	/**
+	 * @param Skill the skill number to check
+	 */
 	private void checkXP(int Skill) {
 		if (game.getTab() != Game.Tab.STATS) {
 			game.openTab(Game.Tab.STATS);
@@ -1009,7 +1079,9 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		}
 		sleep(random(1000, 1500));
 	}
-
+	/**
+	 * @param Time The time to sleep in milliseconds.
+	 */
 	private void moveMouseOffScreen(int Time) {
 		mouse.moveOffScreen();
 		sleep(Time);
@@ -1033,13 +1105,21 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 
 	}
 
+	/**
+	 * @param minTime The minimum time to sleep in milliseconds.
+	 * @param maxTime The maximum time to sleep in milliseconds.
+	 */
 	private void moveCameraToLeft(int minTime, int maxTime) {
 
 		keyboard.pressKey((char) KeyEvent.VK_LEFT);
 		sleep(random(minTime, maxTime));
 		keyboard.releaseKey((char) KeyEvent.VK_LEFT);
 	}
-
+	
+	/**
+	 * @param minTime The minimum time to sleep in milliseconds.
+	 * @param maxTime The maximum time to sleep in milliseconds.
+	 */
 	private void moveCameraToRight(int minTime, int maxTime) {
 		keyboard.pressKey((char) KeyEvent.VK_RIGHT);
 		sleep(random(minTime, maxTime));
