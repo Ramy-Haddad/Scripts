@@ -646,7 +646,6 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		final RSObject BARRIER = objects.getNearest(team.getBarriesID());
 		
 		if (playerInArea(GUILD_AREA)) {
-			log("x");
 			return State.join;
 		} else if (alter != null) {
 			if (alter.isOnScreen()){
@@ -676,16 +675,7 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 				}
 			}	
 		}
-		log("xx");
 		return null;
-	}
-	public class Mouse{
-		private final Color MOUSE_COLOR = new Color(132, 198, 99),
-	            MOUSE_BORDER_COLOR = new Color(225, 200, 25),
-	            MOUSE_CENTER_COLOR = new Color(168, 9, 9);
-	    private boolean pressed = false;
-	    private int absoluteY = 0;
-	    
 	}
 	
 	/** -----------------------GUI----------------------- */
