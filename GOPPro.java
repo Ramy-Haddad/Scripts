@@ -40,26 +40,24 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 	
 	Team team = Team.Green;
 	JoinTeam Jointeam;
-	static Style style;
+	Style style;
 	
 	public enum Team{
-		Yellow(0, 8021,38377, 13648,13644,13646, 8030 ),
-		Green(1, 8025,38378, 13647,13643,13645, 8031 );
+		Yellow(0, 8021,38377, 13648,13644,13646),
+		Green(1, 8025,38378, 13647,13643,13645);
 		
 		int ID = 0;
 		
 		int OrbID = 0;
 		int BarriedID = 0;
-		int WizardID = 0;
 		int BarriesID = 0;
 		int RepellerID = 0;
 		int AttrackerID = 0;
 		
-		Team(int ID, int OrbID, int BarriesID, int BarriedID,int RepellerID,int AttrackerID, int WizardID){
+		Team(int ID, int OrbID, int BarriesID, int BarriedID,int RepellerID,int AttrackerID){
 			this.RepellerID = RepellerID;
 			this.AttrackerID = AttrackerID;
 			this.BarriesID = BarriesID;
-			this.WizardID = WizardID;
 			this.BarriedID = BarriedID;
 			this.OrbID = OrbID;
 		}
@@ -72,9 +70,6 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		}
 		public int getBarriesID(){
 			return BarriesID;
-		}
-		public int getWizardID(){
-			return WizardID;
 		}
 		public int getBarriedID(){
 			return BarriedID;
@@ -95,7 +90,16 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		Repel , Attrack , Hold
 	}
 	public enum JoinTeam{
-		Green, Yellow, Randomly
+		Green(8031), Yellow(8030), Randomly( 8038, 8039, 8033, 8040 );
+		
+		int[] WizardID;
+		JoinTeam(int... WizardID){
+			this.WizardID = WizardID;
+		}
+		
+		public int[] getWizardID(){
+			return WizardID;
+		}
 	}
 	
 	protected GOPGui GOPGUI;
@@ -187,37 +191,18 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		if(alter !=null){
 			Status = "Moving to " + alter.getName() + "...";
 			walking.walkTileMM(alter.getLocation());
-			while(getMyPlayer().isMoving()){
-				sleep(random(100,200));
-			}
+			sleep(400,500);
 		}
 	}
-	public Filter<RSNPC> GreenFilter = new Filter<RSNPC>() {
+	public Filter<RSNPC> Filter = new Filter<RSNPC>() {
 		public boolean accept(RSNPC n) {
 			if(style != Style.Hold){
-			return n.getID() == Team.Green.getOrbID() && Check(n) && (calc.distanceTo(n.getLocation()) > 2);
+			return n.getID() == team.getOrbID() && Check(n) && (calc.distanceTo(n.getLocation()) > 2);
 			}
-			return n.getID() == Team.Green.getOrbID() && Check(n);
+			return n.getID() == team.getOrbID() && Check(n);
 		}
 	};
-	
-	public Filter<RSNPC> YellowFilter = new Filter<RSNPC>() {
-		public boolean accept(RSNPC m) {
-			if(style != Style.Hold){
-				return m.getID() == Team.Yellow.getOrbID() && Check(m) && (calc.distanceTo(m.getLocation()) > 2);
-			}
-			return m.getID() == Team.Yellow.getOrbID() && Check(m);
-		}
-	};
-	public Filter<RSNPC> getOrbFilter(){
-		switch(team){
-		case Green:
-			return GreenFilter;
-		case Yellow:
-			return YellowFilter;
-		}
-		return null;
-	}
+
 	public  boolean Check(final RSNPC o){
 		if(objects.getNearest(MIND_ALTER_ID) ==null){
 			return true;
@@ -240,28 +225,29 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 					exitPortal.interact("Enter");
 					sleep(1500, 2000);
 				} else {
-					walking.walkTileMM(exitPortal.getLocation());
-					sleep(3000, 5000);
+					if(walking.walkTileMM(exitPortal.getLocation())){
+						sleep(600, 700);
+					}
 				}
 
 			} else {
-				walking.walkTileMM(alter.getLocation());
-				sleep(1250, 1650);
+				if(walking.walkTileMM(alter.getLocation())){
+					sleep(600, 700);
+				}
 			}
 		}
 	}
 
 	public void Hold(){
 		if(getMyPlayer().getAnimation() != ANIMATION){
-		RSNPC g = npcs.getNearest(getOrbFilter());
+		RSNPC g = npcs.getNearest(Filter);
 		
 		if(g != null){
 			if(g.isOnScreen()){
 				g.interact("attrack");
 				sleep(500);
 			}else{
-				walking.walkTileMM(g.getLocation());
-				while(getMyPlayer().isMoving()){
+				if(walking.walkTileMM(g.getLocation())){
 					sleep(200,500);
 				}
 			}
@@ -269,7 +255,7 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 	}else{
 		moveCameraRandomly();
 	}
-	}
+		}
 	public void Join() {
 		if (interfaces.getComponent(243, 4).getText().toLowerCase().contains("i never should have put my hopes in")) {
 			interfaces.getComponent(243, 7).doClick();
@@ -292,17 +278,10 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 				sleep(400,600);
 			}
 
-		Status = "Joining Game...";
 
-		RSNPC wizard = null;
-		if(Jointeam == JoinTeam.Green){
-			wizard = npcs.getNearest(Team.Green.getWizardID());
-		}else if(Jointeam == JoinTeam.Yellow){
-			wizard = npcs.getNearest(Team.Yellow.getWizardID());
-		}else if(Jointeam == JoinTeam.Randomly){
-			wizard = npcs.getNearest(WIZARD_ID);
-		}
 
+		RSNPC wizard = npcs.getNearest(Jointeam.getWizardID());
+		
 		if (inventory.getCount(new int[] {Team.Green.getBarriedID() , Team.Yellow.getBarriedID()}) < 1) {
 			if (interfaces.getComponent(228, 2).isValid()) {
 				interfaces.getComponent(228, 2).doClick(true);
@@ -310,17 +289,18 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 			}else{
 				if (wizard != null) {
 					if (wizard.isOnScreen()) {
-						wizard.interact("Join");
-						sleep(1000, 1500);
-						moveCameraRandomly();
+						Status = "Joining Game...";
+						if(wizard.interact("Join")){
+							sleep(1000, 1500);
+							moveCameraRandomly();
+						}
 					} else {
-						walking.walkTileMM(wizard.getLocation());
-						while(getMyPlayer().isMoving()){
+						if(walking.walkTileMM(wizard.getLocation())){
 							sleep(200,500);
 						}
+						
 					}
 				}
-				sleep(300);
 			}
 		}else{
 			if (inventory.getCount(Team.Yellow.getBarriedID()) > 0) {
@@ -330,8 +310,7 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 				team = Team.Green;
 			}
 			RSItem r = inventory.getItem(team.getRepellerID());
-			if (r != null && style == Style.Repel) {
-				r.interact("Wield");
+			if (r != null && style == Style.Repel && r.interact("Wield")) {
 				sleep(2000);
 			}
 			CURRENT_TOKENS = inventory.getCount(true, TOKENS);
@@ -342,9 +321,6 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 					sleep(500, 1000);
 				} else {
 					walking.walkTileMM(port.getLocation());
-					while(getMyPlayer().isMoving()){
-						sleep(200,500);
-					}
 				}
 			} else {
 				AntiBan();
@@ -352,7 +328,6 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		}
 
 	}
-
 	public void CraftRunes() {
 		RSObject alter = objects.getNearest(ALTERS_ID);
 		if (inventory.getCount(ESS) >= 5) {
@@ -377,7 +352,7 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 
 	public void Defend() {
 		Status = "Repelling orb...";
-		RSNPC orb = npcs.getNearest(getOrbFilter());
+		RSNPC orb = npcs.getNearest(Filter);
 		if (style == Style.Repel) {
 			if (orb != null) {
 				RSItem r = inventory.getItem(team.getRepellerID());
@@ -401,7 +376,7 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 
 	public void Offend() {
 		RSObject alter = objects.getNearest(ALTERS_ID);
-		RSNPC orb = npcs.getNearest(getOrbFilter());
+		RSNPC orb = npcs.getNearest(Filter);
 		if (orb != null) {
 			if (getMyPlayer().getAnimation() == ANIMATION && alter.isOnScreen()) {
 				moveMouseOffScreen(random(200, 1200));
@@ -418,7 +393,7 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 					} else {
 						Status = "Attracking orb...";
 						if(orb.interact("attract")){
-						sleep(850, 1500);
+						sleep(400, 800);
 						}
 					}
 				}
@@ -643,8 +618,8 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 	public State getState() {
 		RSNPC exitPortal = npcs.getNearest(8020);
 		RSObject alter = objects.getNearest(ALTERS_ID);
-		final RSObject BARRIER = objects.getNearest(team.getBarriesID());
-		
+		RSObject BARRIER = objects.getNearest(team.getBarriesID());
+
 		if (playerInArea(GUILD_AREA)) {
 			return State.join;
 		} else if (alter != null) {
@@ -653,7 +628,6 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 					if (inventory.getCount(ESS) >= 5) {
 						return State.craftRunes;
 					}
-
 					return State.exit;
 					
 				}else{
