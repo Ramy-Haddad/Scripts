@@ -449,39 +449,9 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 	public void messageReceived(final MessageEvent evt) {
 		final String serverString = evt.getMessage();
 		if (evt.getID() == MessageEvent.MESSAGE_SERVER
-				&& serverString.contains("yellow orbs")) {
-			RSNPC orb = npcs.getNearest(Team.Green.getOrbID());
-			RSItem b = inventory.getItem(Team.Green.getBarriedID());
-			if (orb != null &&  b != null) {
-				//Pillar
-				if (orb != null) {
-					sleep(1500, 2500);
-					b.interact("Make");
-				}
-			} else {
-				if (orb == null) {
-				}
-
-			}
-		}
-		if (evt.getID() == MessageEvent.MESSAGE_SERVER
-				&& serverString.contains("green orbs")) {
-			RSNPC orb = npcs.getNearest(Team.Yellow.getOrbID());
-			RSItem b = inventory.getItem(Team.Yellow.getBarriedID());
-			if (orb != null && b != null) {
-				sleep(1500, 2500);
-				b.interact("Make-barrier");
-				sleep(500, 750);
-			}
-			}
-		if (evt.getID() == MessageEvent.MESSAGE_SERVER
 				&& serverString.contains("is getting low")) {
-			if (inventory.getCount(Team.Yellow.getBarriedID()) > 0) {
-				CreatBarrier(inventory.getItem(Team.Yellow.getBarriedID()),random(3,6));
-			} else {
-				if (inventory.getCount(Team.Green.getBarriedID()) > 0) {
-					CreatBarrier(inventory.getItem(Team.Green.getBarriedID()),random(3,6));
-				}
+			if (inventory.getCount(team.getBarriedID()) > 0) {
+				CreatBarrier(inventory.getItem(team.getBarriedID()),random(3,6));
 			}
 		}
 	}
