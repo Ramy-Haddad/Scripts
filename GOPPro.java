@@ -216,13 +216,10 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 	}
 	public void Exit() {
 		Status = "Entering Portal...";
-		RSNPC exitPortal = npcs.getNearest(new int[] { 8020 });
-		RSObject alter = objects.getNearest(new int[] { 2478, 2479, 2480, 2481,
-				2482, 2483, 2486, 2487 });
+		RSNPC exitPortal = npcs.getNearest(8020);
 		if (inventory.getCount(ESS) < 5) {
 			if (exitPortal != null) {
-				if (exitPortal.isOnScreen()) {
-					exitPortal.interact("Enter");
+				if (exitPortal.isOnScreen() && exitPortal.interact("Enter")) {
 					sleep(1500, 2000);
 				} else {
 					if(walking.walkTileMM(exitPortal.getLocation())){
@@ -230,10 +227,6 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 					}
 				}
 
-			} else {
-				if(walking.walkTileMM(alter.getLocation())){
-					sleep(600, 700);
-				}
 			}
 		}
 	}
@@ -241,7 +234,7 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 	public void Hold(){
 		if(getMyPlayer().getAnimation() != ANIMATION){
 		RSNPC g = npcs.getNearest(Filter);
-		
+
 		if(g != null){
 			if(g.isOnScreen()){
 				g.interact("attrack");
@@ -338,8 +331,7 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 						sleep(500, 1000);
 					}else{
 						Status = "Crafting Runes...";
-						TrunCameraTo(alter);
-						if(alter.interact("Craft-rune")){
+						if(TrunCameraTo(alter) && alter.interact("Craft-rune")){
 							sleep(850, 1250);
 						}
 					}
@@ -395,12 +387,8 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 	public void DestroyBarrier() {
 		Status = "Destroying Barriers..";
 		RSObject BARRIER = objects.getNearest(team.getBarriesID());
-		if (calc.distanceTo(BARRIER.getLocation()) <= 15 && BARRIER != null) {
-			TrunCameraTo(BARRIER);
-			sleep(500, 750);
-			if(BARRIER.interact("Destroy")){
+		if (BARRIER != null && TrunCameraTo(BARRIER) && BARRIER.interact("Destroy")) {
 			sleep(1000, 1720);
-			}
 		}
 	}
 	
