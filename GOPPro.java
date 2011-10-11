@@ -188,12 +188,12 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 
 	public void Walk2Alter(){
 		RSObject alter = objects.getNearest(ALTERS_ID);
-		if(alter !=null){
-			Status = "Moving to " + alter.getName() + "...";
-			walking.walkTileMM(alter.getLocation());
+		if(alter !=null && walking.walkTileMM(alter.getLocation())){
+			Status = "Walking to " + alter.getName() + "...";
 			sleep(400,500);
 		}
 	}
+	
 	public Filter<RSNPC> Filter = new Filter<RSNPC>() {
 		public boolean accept(RSNPC n) {
 			if(style != Style.Hold){
@@ -356,17 +356,11 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		if (style == Style.Repel) {
 			if (orb != null) {
 				RSItem r = inventory.getItem(team.getRepellerID());
-				if (r != null) {
-					if (r.interact("Wield")) {
-						sleep(200, 500);
-					}
+				if (r != null && r.interact("Wield")) {
+						sleep(500, 800);
 				}
-				if (orb.isOnScreen()) {
-					if (orb.interact("Repel")) {
+				if (TrunCameraTo(orb) && orb.interact("Repel")) {
 						sleep(1000, 1500);
-					}
-				} else {
-					TrunCameraTo(orb);
 				}
 			} else {
 				moveCameraRandomly();
@@ -383,20 +377,15 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 			} else if (calc.distanceTo(alter.getLocation()) > 3) {
 				Walk2Alter();
 			} else {
-				if (!orb.isOnScreen()) {
-					TrunCameraTo(orb);
-				} else {
 					RSItem a = inventory.getItem(team.getAttrackerID());
-					if (a != null) {
-						a.interact("Wield");
+					if (a != null && a.interact("Wield")) {
 						sleep(200, 500);
 					} else {
 						Status = "Attracking orb...";
-						if(orb.interact("attract")){
+						if(TrunCameraTo(orb) && orb.interact("attract")){
 						sleep(400, 800);
 						}
 					}
-				}
 			}
 		} else {
 			moveCameraRandomly();
@@ -418,21 +407,21 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 	/**
 	 * @param orb the npc to turn to
 	 */
-	public void TrunCameraTo(RSNPC orb){
-		TrunCameraTo(orb.getLocation());
+	public boolean TrunCameraTo(RSNPC orb){
+		return TrunCameraTo(orb.getLocation());
 	}
 	
 	/**
 	 * @param orb the object to turn to
 	 */
-	public void TrunCameraTo(RSObject orb){
-		TrunCameraTo(orb.getLocation());
+	public boolean TrunCameraTo(RSObject orb){
+		return TrunCameraTo(orb.getLocation());
 	}
 	
 	/**
 	 * @param orb the tile to turn to
 	 */
-	public void TrunCameraTo(RSTile t){
+	public boolean TrunCameraTo(RSTile t){
 		if(calc.distanceTo(t) > 5){
 			camera.setPitch(random(20,40));
 		}else if(calc.distanceTo(t) > 10){
@@ -446,6 +435,7 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 		}
 		camera.turnTo(t);
 		sleep(200,500);
+		return calc.tileOnScreen(t);
 	}
 	
 	Rectangle r = new Rectangle(522, 468, 29, 33);
