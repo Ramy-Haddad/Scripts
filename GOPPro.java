@@ -398,9 +398,6 @@ public class GOPPro extends Script implements PaintListener, MessageListener,
 			}
 		} else {
 			if(Orb != null){
-				if( && Orb.getLocation() > alter.getLocation()){
-					
-				}
 			}
 			moveCameraRandomly();
 		}
